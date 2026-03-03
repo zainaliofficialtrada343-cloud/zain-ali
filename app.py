@@ -1,3 +1,4 @@
+import database_helper as db
 import streamlit as st
 import pandas as pd
 import os
@@ -15,10 +16,11 @@ required_cols = ["ID", "Date", "Name", "Age", "Gender", "Test", "Total_Bill", "P
 if not os.path.exists(DB_FILE):
     pd.DataFrame(columns=required_cols).to_csv(DB_FILE, index=False)
 else:
+ # Agar file hai to check karo Gender column hai ya nahi
     existing_df = pd.read_csv(DB_FILE)
     if "Gender" not in existing_df.columns:
-        existing_df["Gender"] = "Not Specified"
-        existing_df = existing_df[required_cols]
+        existing_df["Gender"] = "Not Specified" # Naya column purane data mein add kiya
+        existing_df = existing_df[required_cols] # Columns ki tarteeb sahi ki
         existing_df.to_csv(DB_FILE, index=False)
 
 if not os.path.exists(TEST_FILE):
@@ -71,7 +73,7 @@ else:
     if menu == "Registration":
         st.header("New Patient Registration")
         
-        tdf = load_tests_data()
+        tdf = db.get_tests_list()
         test_options = sorted(tdf["Test_Name"].unique().tolist())
         test_rate_dict = dict(zip(tdf["Test_Name"], tdf["Rate"]))
 
@@ -118,7 +120,7 @@ else:
                     rem = total_bill - paid_amt
                     new_id = len(pd.read_csv(DB_FILE)) + 1
                     new_row = [new_id, today, p_name, p_age, p_gender, all_tests_str, total_bill, paid_amt, rem, "-", "-", ("Paid" if rem<=0 else "Pending")]
-                    pd.DataFrame([new_row], columns=required_cols).to_csv(DB_FILE, mode='a', header=False, index=False)
+                    db.save_record_online(pd.DataFrame([new_row], columns=required_cols))
                     st.session_state.temp_tests = [] 
                     st.success("Record Saved!")
                     st.rerun()
