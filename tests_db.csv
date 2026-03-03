@@ -1,0 +1,211 @@
+Test_Name,Rate
+Hemoglobin,0.0
+TLC,0.0
+DLC,0.0
+RBCCount,0.0
+Eosinophil Count,0.0
+Platelet Count,0.0
+BT,0.0
+CT,0.0
+ESR,0.0
+PCV Hematocrit,0.0
+Complete Hemogram,0.0
+PBF for Type of Anemia,0.0
+Blood Grouping,0.0
+PT INR,0.0
+APTT,0.0
+G6PD,0.0
+Reticulocyte count,0.0
+d-Dimer,0.0
+Screening Test for hemoglobinopathies,0.0
+Microscopic Exam,0.0
+Urine Sugar,0.0
+Urine ALBUMIN,0.0
+Bile Salts,0.0
+Bile Pigments,0.0
+Urinary pH,0.0
+Urine for RBC,0.0
+Urine for Ketone Bodies,0.0
+Urine for Pregnancy,0.0
+Urine for Bilirubin,0.0
+Urine Specific Gravity,0.0
+Urine Urobilinogen,0.0
+Urine Leucocytes,0.0
+Urine Nitrite,0.0
+SEMEN Analysis,0.0
+FNAC,0.0
+PAP Smear,0.0
+Body Fluids,0.0
+CSF Microscopy,0.0
+Whole Specimens Biopsy,0.0
+Postmortem specimens,0.0
+Bacterial Culture,0.0
+Tuberculosis Culture,0.0
+Fungal culture,0.0
+Grams stain,0.0
+KOH mount,0.0
+ZN staining,0.0
+PBF for Malarial Parasite,0.0
+VDRL RPR TPHA,0.0
+CRP,0.0
+Rheumatoid Factor RA,0.0
+ASO,0.0
+WIDAL,0.0
+Malaria Ag card,0.0
+Dengue serology,0.0
+HCV Card,0.0
+HCV ELISA,0.0
+HBsAg ELISA,0.0
+HBsAg CARD,0.0
+HIV card,0.0
+Stool For Ova Cyst,0.0
+Stool For Occult blood,0.0
+IgE,0.0
+IgG,0.0
+IgM,0.0
+IgA,0.0
+Serum ferritin test,0.0
+Serum Ceruloplasmin levels,0.0
+ASO level,0.0
+C3 Level,0.0
+IL6,0.0
+SCRUB TYPHUS,0.0
+RTPCR FOR COVID 19,0.0
+B Glucose,0.0
+B urea,0.0
+S Creatinine,0.0
+S Bilirubin Total,0.0
+T Protein,0.0
+S Albumin,0.0
+S Calcium,0.0
+S Phosphorus,0.0
+S Uric Acid,0.0
+T Cholesterol,0.0
+Triglyceride,0.0
+HDL Cholesterol,0.0
+Serum Sodium,0.0
+Serum Potassium,0.0
+Serum Chloride,0.0
+Serum Lithium,0.0
+Ionized Calcium,0.0
+S SGOT,0.0
+S SGPT,0.0
+ALP Alkaline Phosphatase,0.0
+Amylase,0.0
+CPK-MB,0.0
+Iron,0.0
+Magnesium,0.0
+PCT,0.0
+GGT Gamma Glutamyl Transferase,0.0
+S LDL Cholesterol,0.0
+LDH,0.0
+TPUC Total Protein Urine,0.0
+UIBC,0.0
+HbA1C Glycated Haemoglobin,0.0
+TSH,0.0
+fT3 free Tri-iodothyronine,0.0
+fT4 free Thyroxine,0.0
+Anti-TPO Antibodies,0.0
+hs-CRP C-reactive protein,0.0
+Transferrin,0.0
+Coombs Crossmatch,0.0
+Component Preparation,0.0
+Apheresis,0.0
+CBC Test,0.0
+RBC Test,0.0
+ABC Test,200.0
+AMC Test,0.0
+AEC Test,300.0
+ALC Test,200.0
+MCHC Blood Test,0.0
+MCH Blood Test,0.0
+MCV Blood Test,0.0
+MPV Blood Test,0.0
+HCT Blood Test,0.0
+PDW Blood Test,0.0
+WBC Blood Test,0.0
+Factor IX Test,0.0
+Factor X Test,0.0
+ACT Test,0.0
+INR Test,0.0
+Urine Glucose Test,0.0
+Urine Cotinine Test,0.0
+UPCR Test,0.0
+Triple Marker Test,0.0
+Double Marker Test,0.0
+Stool Elastase Test,0.0
+Sweat Chloride Test,0.0
+Biopsy Test,0.0
+Prostate Biopsy Test,0.0
+Liver Biopsy,0.0
+Cervix Biopsy Test,0.0
+Skin Biopsy Test,0.0
+Hair Follicle Drug Test,0.0
+Bleeding Time Test,0.0
+Clotting Time Test,0.0
+Lactic Acid Test,0.0
+Globulin Test,0.0
+RT PCR Test,0.0
+Stool Occult Blood Test,0.0
+Typhidot Test,0.0
+Dengue Test,0.0
+Urine Culture Test,0.0
+Dengue IgM Test,0.0
+Dengue IgG Test,0.0
+Dengue Antigen Test,0.0
+HIV Test,0.0
+Stool Culture Test,0.0
+Gonorrhea Test,0.0
+Hepatitis C Virus Test,0.0
+Malaria Parasite Test,0.0
+Sputum Culture,0.0
+RSV Test,0.0
+HER2 Test,0.0
+Pax8 Test,0.0
+SMA Test,0.0
+AMH,0.0
+AFP,200.0
+ANA,0.0
+B-HCG,0.0
+CA-125,0.0
+CK-NAC,0.0
+Ferritin,0.0
+FBP,0.0
+H Pylori,0.0
+HbsAg,0.0
+Hb,0.0
+Malaria Test,0.0
+Moxtux Antigen,0.0
+Malaria Parasite Slide,0.0
+Potassium,0.0
+Phosphorous,0.0
+PSA,0.0
+Prothrombin time,0.0
+Torch Panel,0.0
+Procalcitonin,0.0
+LH,0.0
+FSH,0.0
+Salmonella Typhi,0.0
+HIV antigen test,0.0
+Total neutrophil count,0.0
+Stool Routine,0.0
+FT3,0.0
+FT4,0.0
+Urine Routine Examination,0.0
+Stool Routine Examination,0.0
+Reducing Sugar,0.0
+Body Fluid CS,0.0
+Sputum for AFB,0.0
+Peripheral Smear,0.0
+Vitamin B12,0.0
+Vitamin D,0.0
+Pus Culture,0.0
+Body Fluid Analysis,0.0
+Blood CS,0.0
+Gram Stain,0.0
+Acetone Body,0.0
+Protein Total,0.0
+Coombs TestLFT,0.0
+nn,0.0
+zain ali,0.0
+inam khan,500
