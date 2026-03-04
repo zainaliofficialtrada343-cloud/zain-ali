@@ -60,7 +60,7 @@ else:
     with st.sidebar:
         st.markdown("<h1 style='text-align: center;'>🧪 BioCloud Pro</h1>", unsafe_allow_html=True)
         
-        # Cash calculation from CSV
+        # Cash calculation
         if not df.empty and 'Date' in df.columns:
             cash_df = df[df['Date'] == today]
             total_cash = pd.to_numeric(cash_df['Paid_Amount'], errors='coerce').sum()
@@ -113,9 +113,13 @@ else:
                 st.rerun()
 
         if st.session_state.temp_tests:
+            st.markdown('<div class="login-card">', unsafe_allow_html=True) # Card Start
             total_bill = sum(t['Rate'] for t in st.session_state.temp_tests)
             for i, t in enumerate(st.session_state.temp_tests):
                 st.write(f"{i+1}. ✅ {t['Test']} --- Rs. {t['Rate']}")
+            st.divider()
+            st.write(f"**Total Bill: Rs. {total_bill}**")
+            st.markdown('</div>', unsafe_allow_html=True) # Card End
             
             paid_amt = st.number_input("Paid Amount", 0)
             if st.button("💾 Final Save Record", use_container_width=True):
@@ -136,25 +140,36 @@ else:
         if not df.empty:
             pending_df = df[(df["Remaining"] > 0) | (df["Result"] == "-")]
             if not pending_df.empty:
+                st.markdown('<div class="login-card">', unsafe_allow_html=True) # Card Design Wapas
                 sel_patient = st.selectbox("Search Patient", pending_df["Name"].tolist())
                 p_data = df[df["Name"] == sel_patient].iloc[-1]
                 
-                st.info(f"Test: {p_data['Test']} | Dues: Rs. {p_data['Remaining']}")
+                st.info(f"Test: {p_data['Test']} | Total Bill: {p_data['Total_Bill']} | Already Paid: {p_data['Paid_Amount']}")
+                st.warning(f"Remaining Dues: Rs. {p_data['Remaining']}")
+                
                 c_a, c_b = st.columns(2)
                 add_p = c_a.number_input("Add More Payment", 0)
                 res_v = c_b.text_input("Enter Result", value=p_data['Result'])
                 
-                if st.button("Update Record"):
+                if st.button("Update & Save Record"):
                     new_paid = p_data["Paid_Amount"] + add_p
                     new_rem = p_data["Total_Bill"] - new_paid
                     df.loc[df["ID"] == p_data["ID"], ["Paid_Amount", "Remaining", "Status", "Result"]] = [new_paid, new_rem, ("Paid" if new_rem<=0 else "Pending"), res_v]
                     df.to_csv(PATIENT_FILE, index=False)
-                    st.success("Updated!")
+                    st.success("Updated Successfully!")
                     st.rerun()
+                st.markdown('</div>', unsafe_allow_html=True)
             else:
-                st.success("No pending records!")
+                st.success("No pending records found!")
 
     # --- SECTION 3: EXCEL HISTORY ---
     elif menu == "Excel History":
-        st.header("📊 Lab Database")
-        st.dataframe(df, use_container_width=True, hide_index=True)
+        st.header("📊 Lab Database History")
+        # Search Box Wapas Daal Diya
+        search_query = st.text_input("🔍 Search History (Name, ID, Date, or Test)")
+        
+        if search_query:
+            filtered_df = df[df.astype(str).apply(lambda x: x.str.contains(search_query, case=False)).any(axis=1)]
+            st.dataframe(filtered_df, use_container_width=True, hide_index=True)
+        else:
+            st.dataframe(df, use_container_width=True, hide_index=True)
