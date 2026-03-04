@@ -1,0 +1,26 @@
+<style>
+    .slip { width: 350px; font-family: monospace; border: 1px solid #000; padding: 10px; background: #fff; color: #000; margin: auto; }
+    .header { text-align: center; font-weight: bold; font-size: 18px; border-bottom: 2px solid #000; margin-bottom: 10px; }
+    table { width: 100%; font-size: 12px; }
+    .summary { border-top: 2px dashed #000; margin-top: 10px; padding-top: 5px; font-weight: bold; }
+    @media print { .stButton { display: none; } }
+</style>
+
+<div class="slip">
+    <div class="header">THA LIFE CARE</div>
+    <table>
+        <tr><td>Inv: {{invoice}}</td><td align="right">{{date}}</td></tr>
+        <tr><td>Pat: {{name}}</td><td align="right">{{age}}/{{gender}}</td></tr>
+        <tr><td>Mob: {{mobile}}</td></tr>
+    </table>
+    <hr>
+    <table>
+        <tr><td><b>Tests</b></td><td align="right"><b>AMT</b></td></tr>
+        {{test_rows}}
+    </table>
+    <div class="summary">
+        <div>Total: Rs. {{total}}</div>
+        <div>Paid:  Rs. {{paid}}</div>
+        <div style="font-size: 14px;">Balance: Rs. {{balance}}</div>
+    </div>
+</div>

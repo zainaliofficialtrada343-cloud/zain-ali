@@ -35,101 +35,52 @@ def save_test_local(new_test_df):
     updated_tests = pd.concat([existing_tests, new_test_df], ignore_index=True)
     updated_tests.to_csv(TESTS_FILE, index=False)
 
-# --- 2. NEW PROFESSIONAL INVOICE DESIGN ---
+# --- 2. CLEAN RECEIPT FUNCTION (Alag HTML File use karne ke liye) ---
 def show_receipt(val):
+    # Data indexing fix:
+    # 0:ID, 1:Invoice, 2:Date, 3:Name, 4:Mobile, 5:Age, 6:Gender, 8:Tests, 9:Total, 10:Paid, 11:Rem
     val = val.tolist() if hasattr(val, 'tolist') else val
     
-    # Custom CSS for a clean thermal-style invoice
-    st.markdown("""
-        <style>
-        .invoice-box {
-            max-width: 400px; margin: auto; padding: 20px;
-            border: 1px solid #eee; font-size: 14px; line-height: 24px;
-            font-family: 'Courier New', Courier, monospace; color: #555;
-            background: #fff;
-        }
-        .invoice-box table { width: 100%; line-height: inherit; text-align: left; }
-        .invoice-box table td { padding: 5px; vertical-align: top; }
-        .invoice-box table tr.top table td.title {
-            font-size: 24px; line-height: 30px; color: #333; font-weight: bold; text-align: center;
-        }
-        .invoice-box table tr.information table td { padding-bottom: 20px; }
-        .invoice-box table tr.heading td {
-            background: #eee; border-bottom: 1px solid #ddd; font-weight: bold;
-        }
-        .invoice-box table tr.item td { border-bottom: 1px solid #eee; }
-        .invoice-box table tr.total td:nth-child(2) {
-            border-top: 2px solid #eee; font-weight: bold; font-size: 16px;
-        }
-        @media print {
-            .stButton, header, footer, .stSidebar { display: none !important; }
-            .invoice-box { border: none; width: 100%; max-width: 100%; }
-        }
-        </style>
-    """, unsafe_allow_html=True)
+    try:
+        # Aapki alag HTML file read karega
+        if os.path.exists("invoice_template.html"):
+            with open("invoice_template.html", "r") as f:
+                template = f.read()
+            
+            # Tests ki list handle karna
+            tests_list = str(val[8]).split(", ")
+            test_html = ""
+            for t in tests_list:
+                test_html += f"<tr><td>{t}</td><td style='text-align:right;'>-</td></tr>"
 
-    test_str = str(val[8]) if val[8] and not pd.isna(val[8]) else "-"
-    test_names = test_str.split(", ")
-    
-    test_items_html = ""
-    for tname in test_names:
-        test_items_html += f"<tr class='item'><td>{tname}</td><td style='text-align:right;'>-</td></tr>"
+            # Template mein sahi data bharna (Placeholders use karke)
+            final_invoice = template.replace("{{invoice}}", str(val[1])) \
+                                   .replace("{{date}}", str(val[2])) \
+                                   .replace("{{name}}", str(val[3])) \
+                                   .replace("{{mobile}}", str(val[4])) \
+                                   .replace("{{age}}", str(val[5])) \
+                                   .replace("{{gender}}", str(val[6])) \
+                                   .replace("{{test_rows}}", test_html) \
+                                   .replace("{{total}}", str(val[9])) \
+                                   .replace("{{paid}}", str(val[10])) \
+                                   .replace("{{balance}}", str(val[11]))
 
-    invoice_html = f"""
-    <div class="invoice-box">
-        <table>
-            <tr class="top">
-                <td colspan="2">
-                    <table>
-                        <tr><td class="title">THA LIFE CARE</td></tr>
-                        <tr><td style="text-align:center;">Majeed Colony Sec 2, Karachi</td></tr>
-                    </table>
-                </td>
-            </tr>
-            <tr class="information">
-                <td colspan="2">
-                    <hr>
-                    <table>
-                        <tr>
-                            <td>
-                                <b>Patient:</b> {val[3]}<br>
-                                <b>Age/Gen:</b> {val[5]}/{val[6]}<br>
-                                <b>Mobile:</b> {val[4]}
-                            </td>
-                            <td style="text-align:right;">
-                                <b>Inv #:</b> {val[1]}<br>
-                                <b>Date:</b> {val[2]}<br>
-                                <b>Ref:</b> SELF
-                            </td>
-                        </tr>
-                    </table>
-                </td>
-            </tr>
-            <tr class="heading"><td>Test Description</td><td style="text-align:right;">Price</td></tr>
-            {test_items_html}
-            <tr class="total">
-                <td></td>
-                <td style="text-align:right;">
-                   TOTAL: Rs. {val[9]}<br>
-                   PAID: Rs. {val[10]}<br>
-                   <span style="color:red;">DUE: Rs. {val[11]}</span>
-                </td>
-            </tr>
-        </table>
-        <div style="text-align:center; margin-top:20px; font-size:10px;">
-            Developed by Zain - 03702906075<br>
-            *** Thank You ***
-        </div>
-    </div>
-    """
-    st.markdown(invoice_html, unsafe_allow_html=True)
-    if st.button("🖨️ Print Invoice", key=f"prnt_{val[1]}"):
-        st.info("Press **Ctrl + P** to print.")
+            # Display Invoice
+            st.markdown(final_invoice, unsafe_allow_html=True)
+            
+            # Print Button sirf UI ke liye
+            if st.button("🖨️ Print Now", key=f"p_{val[1]}_{val[0]}"):
+                st.info("Keyboard se **Ctrl + P** dabayein.")
+        else:
+            st.error("Error: 'invoice_template.html' file nahi mili! Folder mein check karein.")
+            
+    except Exception as e:
+        st.error(f"Design load karne mein masla hua: {e}")
 
 # --- 3. PAGE CONFIG ---
 st.set_page_config(page_title="BioCloud Lab Pro", layout="wide", page_icon="🧪")
 
-# --- 4. SESSION STATE ---
+# --- 4. SESSION STATE & LOGIN ---
 if 'temp_tests' not in st.session_state: st.session_state.temp_tests = [] 
 if 'auth' not in st.session_state: st.session_state['auth'] = False
 if 'show_slip' not in st.session_state: st.session_state.show_slip = None
@@ -141,7 +92,7 @@ def check_login(u, p):
         st.rerun()
     else: st.error("Invalid Username or Password")
 
-# --- 5. MAIN LOGIC (AS PER YOUR ORIGINAL) ---
+# --- 5. MAIN APP LOGIC ---
 if not st.session_state['auth']:
     show_login_page(check_login)
 else:
@@ -161,6 +112,7 @@ else:
         st.metric("Aaj Ke Dues", f"Rs. {total_dues}")
         st.divider()
         menu = st.radio("Navigation", ["Registration", "Dues & Reports", "Excel History"])
+        
         st.divider()
         if st.checkbox("Enable Delete Option"):
             if st.button("⚠️ Delete All Patient Data", type="primary"):
@@ -168,11 +120,12 @@ else:
                     os.remove(PATIENT_FILE)
                     st.success("Sabh data delete ho gaya!")
                     st.rerun()
+
         if st.button("Logout"):
             st.session_state['auth'] = False
             st.rerun()
 
-    # Registration Section
+    # --- REGISTRATION ---
     if menu == "Registration":
         st.header("New Patient Registration")
         if st.session_state.show_slip:
@@ -235,7 +188,7 @@ else:
                     st.session_state.temp_tests = [] 
                     st.rerun()
 
-    # Dues Section
+    # --- DUES & REPORTS ---
     elif menu == "Dues & Reports":
         st.header("Update Records & Results")
         if not df.empty:
@@ -254,15 +207,14 @@ else:
                     df.to_csv(PATIENT_FILE, index=False)
                     st.success("Updated!")
                     st.rerun()
-            else: st.write("No pending records.")
 
-    # History Section
+    # --- EXCEL HISTORY ---
     elif menu == "Excel History":
         st.header("📊 Lab Database History")
         with st.expander("🖨️ Reprint Old Slip"):
             if not df.empty:
                 patient_names = df["Name"].tolist()
-                selected_p = st.selectbox("Select Patient", ["-- Select --"] + patient_names)
+                selected_p = st.selectbox("Select Patient to Print", ["-- Select --"] + patient_names)
                 if selected_p != "-- Select --":
                     p_to_print = df[df["Name"] == selected_p].iloc[-1]
                     show_receipt(p_to_print)
