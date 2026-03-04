@@ -35,37 +35,35 @@ def save_test_local(new_test_df):
     updated_tests = pd.concat([existing_tests, new_test_df], ignore_index=True)
     updated_tests.to_csv(TESTS_FILE, index=False)
 
-# --- 2. THE NEW "THA LIFE CARE" DESIGN (Restored) ---
+# --- 2. NEW PROFESSIONAL INVOICE DESIGN ---
 def show_receipt(val):
     val = val.tolist() if hasattr(val, 'tolist') else val
     
+    # Custom CSS for a clean thermal-style invoice
     st.markdown("""
         <style>
-        .slip-container {
-            width: 450px; background: white; padding: 25px; color: black;
-            border: 1px solid #ddd; font-family: 'Segoe UI', Arial, sans-serif; margin: auto;
+        .invoice-box {
+            max-width: 400px; margin: auto; padding: 20px;
+            border: 1px solid #eee; font-size: 14px; line-height: 24px;
+            font-family: 'Courier New', Courier, monospace; color: #555;
+            background: #fff;
         }
-        .header { text-align: center; }
-        .header h1 { font-size: 28px; font-weight: 900; text-transform: uppercase; margin: 0; }
-        .header p { font-size: 14px; font-weight: bold; margin: 2px 0; }
-        .title-bar {
-            border-top: 3px solid black; border-bottom: 3px solid black;
-            text-align: center; margin: 15px 0; padding: 5px 0;
+        .invoice-box table { width: 100%; line-height: inherit; text-align: left; }
+        .invoice-box table td { padding: 5px; vertical-align: top; }
+        .invoice-box table tr.top table td.title {
+            font-size: 24px; line-height: 30px; color: #333; font-weight: bold; text-align: center;
         }
-        .title-bar h2 { font-size: 20px; letter-spacing: 2px; font-weight: bold; margin: 0; }
-        .info-table { width: 100%; font-size: 16px; margin-bottom: 10px; border-collapse: collapse; }
-        .dotted-line { border-top: 2px dotted black; margin: 10px 0; }
-        .charges-table { width: 100%; border-collapse: collapse; }
-        .charges-table th { border-bottom: 2px solid black; text-align: left; padding: 5px 0; font-size: 16px; }
-        .charges-table td { padding: 8px 0; font-size: 16px; }
-        .summary-section { margin-top: 15px; border-top: 3px solid black; }
-        .summary-row { display: flex; justify-content: space-between; font-weight: bold; font-size: 18px; padding: 5px 0; }
-        
+        .invoice-box table tr.information table td { padding-bottom: 20px; }
+        .invoice-box table tr.heading td {
+            background: #eee; border-bottom: 1px solid #ddd; font-weight: bold;
+        }
+        .invoice-box table tr.item td { border-bottom: 1px solid #eee; }
+        .invoice-box table tr.total td:nth-child(2) {
+            border-top: 2px solid #eee; font-weight: bold; font-size: 16px;
+        }
         @media print {
-            header, footer, .stSidebar, .stButton, .stSelectbox, .stTextInput, .stNumberInput, [data-testid="stExpander"] {
-                display: none !important;
-            }
-            .slip-container { border: none !important; width: 100% !important; margin: 0 !important; padding: 0 !important; }
+            .stButton, header, footer, .stSidebar { display: none !important; }
+            .invoice-box { border: none; width: 100%; max-width: 100%; }
         }
         </style>
     """, unsafe_allow_html=True)
@@ -73,56 +71,60 @@ def show_receipt(val):
     test_str = str(val[8]) if val[8] and not pd.isna(val[8]) else "-"
     test_names = test_str.split(", ")
     
-    test_rows_html = ""
-    for i, tname in enumerate(test_names, 1):
-        test_rows_html += f"<tr><td>{i}</td><td>{tname}</td><td>-</td><td>1</td><td style='text-align:right;'>-</td></tr>"
+    test_items_html = ""
+    for tname in test_names:
+        test_items_html += f"<tr class='item'><td>{tname}</td><td style='text-align:right;'>-</td></tr>"
 
-    receipt_html = f"""
-    <div class="slip-container">
-        <div class="header">
-            <h1>( THA LIFE CARE )</h1>
-            <p>MAJEED COLONY SEC 2</p>
-        </div>
-        <div class="title-bar"><h2>PATIENT SLIP</h2></div>
-        <table class="info-table">
-            <tr>
-                <td>Slip No: <b>{val[1]}</b></td>
-                <td style="text-align: right;"><b>{val[2]}</b></td>
+    invoice_html = f"""
+    <div class="invoice-box">
+        <table>
+            <tr class="top">
+                <td colspan="2">
+                    <table>
+                        <tr><td class="title">THA LIFE CARE</td></tr>
+                        <tr><td style="text-align:center;">Majeed Colony Sec 2, Karachi</td></tr>
+                    </table>
+                </td>
             </tr>
-            <tr><td>Shift: <b>Evening</b></td></tr>
+            <tr class="information">
+                <td colspan="2">
+                    <hr>
+                    <table>
+                        <tr>
+                            <td>
+                                <b>Patient:</b> {val[3]}<br>
+                                <b>Age/Gen:</b> {val[5]}/{val[6]}<br>
+                                <b>Mobile:</b> {val[4]}
+                            </td>
+                            <td style="text-align:right;">
+                                <b>Inv #:</b> {val[1]}<br>
+                                <b>Date:</b> {val[2]}<br>
+                                <b>Ref:</b> SELF
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+            <tr class="heading"><td>Test Description</td><td style="text-align:right;">Price</td></tr>
+            {test_items_html}
+            <tr class="total">
+                <td></td>
+                <td style="text-align:right;">
+                   TOTAL: Rs. {val[9]}<br>
+                   PAID: Rs. {val[10]}<br>
+                   <span style="color:red;">DUE: Rs. {val[11]}</span>
+                </td>
+            </tr>
         </table>
-        <div class="dotted-line"></div>
-        <table class="info-table">
-            <tr><td>Patient:</td><td style="text-align: right;"><b>{val[3]}</b></td></tr>
-            <tr><td>Cell/Gen/Age:</td><td style="text-align: right;"><b>{val[4]} / ({str(val[6])[0] if val[6] else '?'}/{val[5]})</b></td></tr>
-            <tr><td>Ref By:</td><td style="text-align: right;"><b>SELF</b></td></tr>
-            <tr><td>Doctor:</td><td style="text-align: right;"><b>DR. ZAIN</b></td></tr>
-        </table>
-        <table class="charges-table">
-            <thead>
-                <tr><th>S#</th><th>CHARGES</th><th>Rate</th><th>Qty</th><th style="text-align: right;">AMT</th></tr>
-            </thead>
-            <tbody>
-                {test_rows_html}
-            </tbody>
-        </table>
-        <div class="summary-section">
-            <div class="summary-row"><span>TOTAL:</span><span>{val[9]}</span></div>
-            <div class="summary-row" style="font-size: 16px; border-top: 2px dotted black;">
-                <span>RECEIVED:</span><span>{val[10]}</span>
-            </div>
-            <div class="summary-row" style="border-top: 2px dotted black;">
-                <span>BALANCE:</span><span>{val[11]}</span>
-            </div>
-        </div>
-        <div style="text-align: center; margin-top: 20px; font-size: 12px; font-weight: bold; border-top: 1px solid #ccc; padding-top: 5px;">
-            Developed by zain 03702906075
+        <div style="text-align:center; margin-top:20px; font-size:10px;">
+            Developed by Zain - 03702906075<br>
+            *** Thank You ***
         </div>
     </div>
     """
-    st.markdown(receipt_html, unsafe_allow_html=True)
-    if st.button("🖨️ Print Now", key=f"btn_{val[1]}_{val[0]}"):
-        st.info("Keyboard se **Ctrl + P** dabayein.")
+    st.markdown(invoice_html, unsafe_allow_html=True)
+    if st.button("🖨️ Print Invoice", key=f"prnt_{val[1]}"):
+        st.info("Press **Ctrl + P** to print.")
 
 # --- 3. PAGE CONFIG ---
 st.set_page_config(page_title="BioCloud Lab Pro", layout="wide", page_icon="🧪")
@@ -139,7 +141,7 @@ def check_login(u, p):
         st.rerun()
     else: st.error("Invalid Username or Password")
 
-# --- 5. MAIN LOGIC ---
+# --- 5. MAIN LOGIC (AS PER YOUR ORIGINAL) ---
 if not st.session_state['auth']:
     show_login_page(check_login)
 else:
@@ -170,7 +172,7 @@ else:
             st.session_state['auth'] = False
             st.rerun()
 
-    # --- REGISTRATION ---
+    # Registration Section
     if menu == "Registration":
         st.header("New Patient Registration")
         if st.session_state.show_slip:
@@ -233,7 +235,7 @@ else:
                     st.session_state.temp_tests = [] 
                     st.rerun()
 
-    # --- DUES & REPORTS (Restored) ---
+    # Dues Section
     elif menu == "Dues & Reports":
         st.header("Update Records & Results")
         if not df.empty:
@@ -252,16 +254,15 @@ else:
                     df.to_csv(PATIENT_FILE, index=False)
                     st.success("Updated!")
                     st.rerun()
-            else:
-                st.write("Koi pending record nahi hai.")
+            else: st.write("No pending records.")
 
-    # --- EXCEL HISTORY (Restored) ---
+    # History Section
     elif menu == "Excel History":
         st.header("📊 Lab Database History")
         with st.expander("🖨️ Reprint Old Slip"):
             if not df.empty:
                 patient_names = df["Name"].tolist()
-                selected_p = st.selectbox("Select Patient to Print", ["-- Select --"] + patient_names)
+                selected_p = st.selectbox("Select Patient", ["-- Select --"] + patient_names)
                 if selected_p != "-- Select --":
                     p_to_print = df[df["Name"] == selected_p].iloc[-1]
                     show_receipt(p_to_print)
