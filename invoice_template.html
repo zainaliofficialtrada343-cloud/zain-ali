@@ -1,89 +1,22 @@
-<style>
-    .receipt-card {
-        width: 380px;
-        background: #fff;
-        padding: 20px;
-        margin: 10px auto;
-        border: 2px solid #000;
-        font-family: 'Courier New', Courier, monospace;
-        color: #000;
-    }
-    .lab-header { text-align: center; border-bottom: 2px solid #000; padding-bottom: 10px; margin-bottom: 10px; }
-    .lab-name { font-size: 24px; font-weight: bold; margin: 0; }
-    
-    .info-table { width: 100%; font-size: 14px; margin-bottom: 10px; }
-    .info-table td { padding: 2px 0; }
-    .label { font-weight: bold; }
-
-    .test-table { width: 100%; border-collapse: collapse; margin-top: 10px; border-top: 1px solid #000; }
-    .test-table th { text-align: left; padding: 5px 0; font-size: 13px; border-bottom: 1px solid #000; }
-    .test-table td { padding: 8px 0; font-size: 14px; border-bottom: 1px dashed #ccc; }
-
-    .payment-section { margin-top: 15px; border-top: 2px solid #000; padding-top: 10px; }
-    .pay-row { display: flex; justify-content: space-between; font-weight: bold; margin-bottom: 5px; }
-    .grand-total { font-size: 18px; background: #000; color: #fff; padding: 5px; }
-
-    .footer { text-align: center; font-size: 11px; margin-top: 20px; }
-    @media print { .no-print { display: none; } }
-</style>
-
-<div class="receipt-card">
-    <div class="lab-header">
-        <div class="lab-name">THA LIFE CARE</div>
-        <div>MAJEED COLONY SEC 2, KARACHI</div>
-        <div>0370-2906075</div>
-    </div>
-
-    <table class="info-table">
-        <tr>
-            <td class="label">Patient:</td>
-            <td>{{name}}</td>
-            <td class="label" align="right">Inv #:</td>
-            <td align="right">{{invoice}}</td>
-        </tr>
-        <tr>
-            <td class="label">Age/Gen:</td>
-            <td>{{age}} / {{gender}}</td>
-            <td class="label" align="right">Date:</td>
-            <td align="right">{{date}}</td>
-        </tr>
-        <tr>
-            <td class="label">Mobile:</td>
-            <td>{{mobile}}</td>
-            <td class="label" align="right">Ref:</td>
-            <td align="right">SELF</td>
-        </tr>
+<div style="width: 350px; border: 2px solid #000; padding: 15px; font-family: sans-serif; margin: auto; background: white; color: black;">
+    <h2 style="text-align: center; margin: 0;">THE LIFE CARE</h2>
+    <p style="text-align: center; font-size: 10px; margin: 5px 0;">MAJEED COLONY SEC 2, KARACHI</p>
+    <hr>
+    <table style="width: 100%; font-size: 12px;">
+        <tr><td><b>Patient:</b> {{name}}</td><td align="right"><b>Inv:</b> {{invoice}}</td></tr>
+        <tr><td><b>Age/Gen:</b> {{age}} / {{gender}}</td><td align="right"><b>Date:</b> {{date}}</td></tr>
+        <tr><td><b>Mobile:</b> {{mobile}}</td><td align="right"><b>Ref:</b> SELF</td></tr>
     </table>
-
-    <table class="test-table">
-        <thead>
-            <tr>
-                <th>Test Description</th>
-                <th align="right">Price</th>
-            </tr>
-        </thead>
-        <tbody>
-            {{test_rows}}
-        </tbody>
+    <table style="width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 13px;">
+        <tr style="border-bottom: 1px solid #000; border-top: 1px solid #000;">
+            <th align="left">Description</th><th align="right">Amt</th>
+        </tr>
+        {{test_rows}}
     </table>
-
-    <div class="payment-section">
-        <div class="pay-row">
-            <span>TOTAL:</span>
-            <span>Rs. {{total}}</span>
-        </div>
-        <div class="pay-row">
-            <span>PAID:</span>
-            <span>Rs. {{paid}}</span>
-        </div>
-        <div class="pay-row grand-total">
-            <span>BALANCE:</span>
-            <span>Rs. {{balance}}</span>
-        </div>
+    <div style="margin-top: 15px; border-top: 2px solid #000; padding-top: 5px;">
+        <div style="display: flex; justify-content: space-between;"><b>Total:</b> <span>Rs. {{total}}</span></div>
+        <div style="display: flex; justify-content: space-between;"><b>Paid:</b> <span>Rs. {{paid}}</span></div>
+        <div style="display: flex; justify-content: space-between; font-size: 16px; background: #eee;"><b>Balance:</b> <span>Rs. {{balance}}</span></div>
     </div>
-
-    <div class="footer">
-        Developed by Zain - 03702906075<br>
-        *** Thank You for choosing THA LIFE CARE ***
-    </div>
+    <p style="text-align: center; font-size: 9px; margin-top: 20px;">Developed by Zain - 03702906075</p>
 </div>

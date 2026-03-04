@@ -35,47 +35,46 @@ def save_test_local(new_test_df):
     updated_tests = pd.concat([existing_tests, new_test_df], ignore_index=True)
     updated_tests.to_csv(TESTS_FILE, index=False)
 
-# --- 2. CLEAN RECEIPT FUNCTION (Alag HTML File use karne ke liye) ---
+# --- 2. CLEAN RECEIPT FUNCTION (Sahi Indexing aur Safe Rendering) ---
 def show_receipt(val):
-    # Data indexing fix:
-    # 0:ID, 1:Invoice, 2:Date, 3:Name, 4:Mobile, 5:Age, 6:Gender, 8:Tests, 9:Total, 10:Paid, 11:Rem
-    val = val.tolist() if hasattr(val, 'tolist') else val
+    # Pandas Series ko list mein convert karna safely
+    v = val.tolist() if hasattr(val, 'tolist') else val
     
+    # DATA INDEXING (Aapke required_cols ke mutabiq):
+    # 1: Invoice, 2: Date, 3: Name, 4: Mobile, 5: Age, 6: Gender, 8: Test, 9: Total, 10: Paid, 11: Remaining
     try:
-        # Aapki alag HTML file read karega
         if os.path.exists("invoice_template.html"):
             with open("invoice_template.html", "r") as f:
                 template = f.read()
             
-            # Tests ki list handle karna
-            tests_list = str(val[8]).split(", ")
+            # Tests ki list ko table rows mein convert karna
+            tests_list = str(v[8]).split(", ")
             test_html = ""
             for t in tests_list:
-                test_html += f"<tr><td>{t}</td><td style='text-align:right;'>-</td></tr>"
+                test_html += f"<tr><td style='padding:5px;'>{t}</td><td style='text-align:right; padding:5px;'>-</td></tr>"
 
-            # Template mein sahi data bharna (Placeholders use karke)
-            final_invoice = template.replace("{{invoice}}", str(val[1])) \
-                                   .replace("{{date}}", str(val[2])) \
-                                   .replace("{{name}}", str(val[3])) \
-                                   .replace("{{mobile}}", str(val[4])) \
-                                   .replace("{{age}}", str(val[5])) \
-                                   .replace("{{gender}}", str(val[6])) \
+            # Template mein sahi data bharna
+            final_invoice = template.replace("{{invoice}}", str(v[1])) \
+                                   .replace("{{date}}", str(v[2])) \
+                                   .replace("{{name}}", str(v[3])) \
+                                   .replace("{{mobile}}", str(v[4])) \
+                                   .replace("{{age}}", str(v[5])) \
+                                   .replace("{{gender}}", str(v[6])) \
                                    .replace("{{test_rows}}", test_html) \
-                                   .replace("{{total}}", str(val[9])) \
-                                   .replace("{{paid}}", str(val[10])) \
-                                   .replace("{{balance}}", str(val[11]))
+                                   .replace("{{total}}", str(v[9])) \
+                                   .replace("{{paid}}", str(v[10])) \
+                                   .replace("{{balance}}", str(v[11]))
 
-            # Display Invoice
+            # Display Invoice using markdown with HTML
+            st.markdown("---")
             st.markdown(final_invoice, unsafe_allow_html=True)
+            st.markdown("---")
             
-            # Print Button sirf UI ke liye
-            if st.button("🖨️ Print Now", key=f"p_{val[1]}_{val[0]}"):
-                st.info("Keyboard se **Ctrl + P** dabayein.")
         else:
-            st.error("Error: 'invoice_template.html' file nahi mili! Folder mein check karein.")
+            st.error("Error: 'invoice_template.html' nahi mili!")
             
     except Exception as e:
-        st.error(f"Design load karne mein masla hua: {e}")
+        st.error(f"Slip display karne mein masla: {e}")
 
 # --- 3. PAGE CONFIG ---
 st.set_page_config(page_title="BioCloud Lab Pro", layout="wide", page_icon="🧪")
@@ -182,6 +181,7 @@ else:
                     all_tests_str = ", ".join([t['Test'] for t in st.session_state.temp_tests])
                     rem = total_bill - paid_amt
                     new_id = len(df) + 1
+                    # Sahi column order for CSV
                     new_row = [new_id, p_inv, today, p_name, p_mobile, p_age, p_gender, p_coll, all_tests_str, total_bill, paid_amt, rem, "-", "-", ("Paid" if rem<=0 else "Pending")]
                     save_record_local(pd.DataFrame([new_row], columns=required_cols))
                     st.session_state.show_slip = new_row 
