@@ -35,7 +35,7 @@ def save_test_local(new_test_df):
     updated_tests = pd.concat([existing_tests, new_test_df], ignore_index=True)
     updated_tests.to_csv(TESTS_FILE, index=False)
 
-# --- 100% SAME SLIP DESIGN (FIXED ERROR) ---
+# --- 100% MATCHED SLIP DESIGN ---
 def show_receipt(data):
     val = data.tolist() if hasattr(data, 'tolist') else data
     
@@ -48,25 +48,27 @@ def show_receipt(data):
             .print-container { border: none !important; width: 100% !important; margin: 0 !important; padding: 0 !important; }
         }
         .print-container {
-            background-color: #fff; padding: 10px;
-            width: 450px; color: #000; font-family: 'Arial', sans-serif;
-            margin: 0 auto;
+            background-color: #fff; padding: 20px;
+            width: 400px; color: #000; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0 auto; border: 1px solid #eee;
         }
-        .main-title { text-align: center; font-weight: bold; font-size: 24px; margin: 0; }
-        .sub-title { text-align: center; font-weight: bold; font-size: 14px; margin-bottom: 5px; }
+        .main-title { text-align: center; font-weight: 900; font-size: 26px; margin: 0; text-transform: uppercase; letter-spacing: 1px; }
+        .sub-title { text-align: center; font-weight: bold; font-size: 14px; margin-bottom: 10px; text-transform: uppercase; }
         .patient-slip-bar { 
-            text-align: center; font-weight: bold; border-top: 2px solid #000; 
-            border-bottom: 2px solid #000; background: #f0f0f0; margin: 5px 0; 
+            text-align: center; font-weight: bold; border-top: 3px solid #000; 
+            border-bottom: 3px solid #000; background: #fff; margin: 5px 0; padding: 2px 0; font-size: 18px;
         }
-        .info-table { width: 100%; border-bottom: 2px dashed #000; margin-bottom: 5px; font-size: 14px; }
-        .test-table { width: 100%; border-collapse: collapse; font-size: 14px; }
-        .test-table th { border-bottom: 2px solid #000; text-align: left; padding: 5px 0; }
-        .test-table td { padding: 5px 0; }
-        .total-section { border-top: 2px solid #000; margin-top: 5px; font-weight: bold; font-size: 16px; }
+        .info-table { width: 100%; border-bottom: 2px dashed #000; margin-bottom: 10px; font-size: 15px; line-height: 1.2; }
+        .test-table { width: 100%; border-collapse: collapse; font-size: 15px; margin-top: 5px; }
+        .test-table th { border-bottom: 2px solid #000; text-align: left; padding: 8px 0; font-weight: bold; }
+        .test-table td { padding: 6px 0; border-bottom: 1px solid #f0f0f0; }
+        .total-section { border-top: 3px solid #000; margin-top: 10px; padding-top: 5px; }
+        .total-section table { width: 100%; font-weight: bold; font-size: 18px; }
+        .dev-tag { text-align: center; margin-top: 30px; font-size: 12px; border-top: 1px solid #ccc; padding-top: 5px; font-weight: bold; }
         </style>
     """, unsafe_allow_html=True)
 
-    # --- ERROR FIX: split() crash bachane ke liye ---
+    # Clean test string and handle split
     test_str = str(val[8]) if val[8] and not pd.isna(val[8]) else "-"
     test_names = test_str.split(", ")
     
@@ -76,27 +78,30 @@ def show_receipt(data):
 
     receipt_html = f"""
         <div class="print-container">
-            <div class="main-title">THE LIFE CARE</div>
-            <div class="sub-title">MODERN DIAGNOSTIC CENTER</div>
+            <div class="main-title">JAWAD MEDICAL CENTERE</div>
+            <div class="sub-title">MAJEED COLONY SEC 2</div>
             <div class="patient-slip-bar">PATIENT SLIP</div>
             <table class="info-table">
                 <tr><td><b>Slip No:</b> {val[1]}</td><td style="text-align:right;">{val[2]}</td></tr>
-                <tr><td colspan="2"><b>Patient:</b> <span style="text-transform: uppercase;">{val[3]}</span></td></tr>
-                <tr><td><b>Cell/Gen/Age:</b> {val[4]} / ({str(val[6])[0] if val[6] else '?'}/{val[5]})</td><td style="text-align:right;"><b>Ref By:</b> SELF</td></tr>
+                <tr><td><b>Shift:</b> Evening</td><td style="text-align:right;"></td></tr>
+                <tr><td colspan="2" style="padding-top:10px;"><b>Patient:</b> <span style="float:right;"><b>{val[3]}</b></span></td></tr>
+                <tr><td><b>Cell/Gen/Age:</b></td><td style="text-align:right;">({str(val[6])[0] if val[6] else '?'}/{val[5]})</td></tr>
+                <tr><td><b>Ref By:</b></td><td style="text-align:right;">SELF</td></tr>
+                <tr><td><b>Doctor:</b></td><td style="text-align:right;">DR. ZAIN</td></tr>
             </table>
             <table class="test-table">
                 <thead><tr><th>S#</th><th>CHARGES</th><th>Rate</th><th>Qty</th><th style="text-align:right;">AMT</th></tr></thead>
                 <tbody>{test_rows_html}</tbody>
             </table>
             <div class="total-section">
-                <table style="width:100%">
+                <table>
                     <tr><td>TOTAL:</td><td style="text-align:right;">{val[9]}</td></tr>
                     <tr><td>RECEIVED:</td><td style="text-align:right;">{val[10]}</td></tr>
-                    <tr style="font-size: 18px;"><td>BALANCE:</td><td style="text-align:right;">{val[11]}</td></tr>
+                    <tr style="font-size: 20px;"><td>BALANCE:</td><td style="text-align:right;">{val[11]}</td></tr>
                 </table>
             </div>
-            <div style="text-align: center; margin-top: 20px; font-size: 12px; border-top: 1px solid #ccc; padding-top: 5px;">
-                <b>Developed by zain 03702906075</b>
+            <div class="dev-tag">
+                Developed by zain 03702906075
             </div>
         </div>
     """
@@ -141,7 +146,7 @@ else:
         menu = st.radio("Navigation", ["Registration", "Dues & Reports", "Excel History"])
         
         st.divider()
-        # --- NEW: DELETE DATA BUTTON ---
+        # --- DELETE ALL DATA FEATURE ---
         if st.checkbox("Enable Delete Option"):
             if st.button("⚠️ Delete All Patient Data", type="primary"):
                 if os.path.exists(PATIENT_FILE):
