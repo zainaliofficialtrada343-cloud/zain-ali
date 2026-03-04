@@ -33,35 +33,37 @@ def save_test_local(new_test_df):
 
 # --- NEW: SLIP DESIGN FUNCTION ---
 def show_receipt(data):
+    # data can be a list or a pandas series
+    val = data.tolist() if hasattr(data, 'tolist') else data
     st.markdown(f"""
         <div style="background-color: white; padding: 20px; border: 2px dashed #333; width: 300px; color: black; font-family: 'Courier New', monospace; margin: auto;">
             <div style="text-align: center; font-weight: bold; font-size: 20px;">🧪 BIOCLOUD LAB</div>
             <div style="text-align: center; font-size: 10px;">Modern Diagnostic Center</div>
             <hr style="border-top: 1px solid black;">
             <div style="font-size: 12px;">
-                <b>ID:</b> {data[0]} <br>
-                <b>Date:</b> {data[1]} <br>
-                <b>Name:</b> {data[2]} <br>
-                <b>Age/Sex:</b> {data[3]} / {data[4]}
+                <b>ID:</b> {val[0]} <br>
+                <b>Date:</b> {val[1]} <br>
+                <b>Name:</b> {val[2]} <br>
+                <b>Age/Sex:</b> {val[3]} / {val[4]}
             </div>
             <hr style="border-top: 1px solid black;">
             <div style="font-size: 12px; font-weight: bold;">Tests:</div>
-            <div style="font-size: 11px;">{data[5]}</div>
+            <div style="font-size: 11px;">{val[5]}</div>
             <hr style="border-top: 1px solid black;">
             <div style="display: flex; justify-content: space-between; font-weight: bold;">
-                <span>Total:</span> <span>Rs. {data[6]}</span>
+                <span>Total:</span> <span>Rs. {val[6]}</span>
             </div>
             <div style="display: flex; justify-content: space-between;">
-                <span>Paid:</span> <span>Rs. {data[7]}</span>
+                <span>Paid:</span> <span>Rs. {val[7]}</span>
             </div>
             <div style="display: flex; justify-content: space-between; color: red;">
-                <span>Balance:</span> <span>Rs. {data[8]}</span>
+                <span>Balance:</span> <span>Rs. {val[8]}</span>
             </div>
             <hr style="border-top: 1px dashed black;">
             <div style="text-align: center; font-size: 10px;">Software by BioCloud AI</div>
         </div>
     """, unsafe_allow_html=True)
-    st.button("🖨️ Print Receipt", on_click=lambda: st.write("Browser ka Print (Ctrl+P) use karein"))
+    st.button("🖨️ Print Receipt", key=f"print_{val[0]}", on_click=lambda: st.write("Browser ka Print (Ctrl+P) use karein"))
 
 # --- 2. PAGE CONFIG ---
 st.set_page_config(page_title="BioCloud Lab Pro", layout="wide", page_icon="🧪")
@@ -113,7 +115,6 @@ else:
     if menu == "Registration":
         st.header("New Patient Registration")
         
-        # --- SHOW SLIP IF SAVED ---
         if st.session_state.show_slip:
             st.success("✅ Record Saved!")
             show_receipt(st.session_state.show_slip)
@@ -171,7 +172,7 @@ else:
                     new_row = [new_id, today, p_name, p_age, p_gender, all_tests_str, total_bill, paid_amt, rem, "-", "-", ("Paid" if rem<=0 else "Pending")]
                     
                     save_record_local(pd.DataFrame([new_row], columns=required_cols))
-                    st.session_state.show_slip = new_row # Save data for slip preview
+                    st.session_state.show_slip = new_row 
                     st.session_state.temp_tests = [] 
                     st.rerun()
 
@@ -204,6 +205,22 @@ else:
 
     elif menu == "Excel History":
         st.header("📊 Lab Database History")
+        
+        # --- NEW: PRINT OLD SLIPS SECTION ---
+        with st.expander("🖨️ Reprint Old Receipt", expanded=False):
+            st.markdown('<div class="login-card">', unsafe_allow_html=True)
+            if not df.empty:
+                patient_list = df["Name"].tolist()
+                selected_for_print = st.selectbox("Select Patient to Reprint Slip", ["-- Select --"] + patient_list)
+                if selected_for_print != "-- Select --":
+                    p_to_print = df[df["Name"] == selected_for_print].iloc[-1]
+                    show_receipt(p_to_print)
+            else:
+                st.write("No data available.")
+            st.markdown('</div>', unsafe_allow_html=True)
+            
+        st.divider()
+        
         search_query = st.text_input("🔍 Search History (Name, ID, Date, or Test)")
         if search_query:
             filtered_df = df[df.astype(str).apply(lambda x: x.str.contains(search_query, case=False)).any(axis=1)]
