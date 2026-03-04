@@ -6,33 +6,33 @@ import pandas as pd
 conn = st.connection("gsheets", type=GSheetsConnection)
 
 def get_full_data():
-    """Sheet1 se patients ka record parhna"""
     try:
+        # TTL=0 zaroori hai taake har baar naya data aaye
         return conn.read(worksheet="Sheet1", ttl=0).dropna(how="all")
-    except:
+    except Exception as e:
+        st.error(f"Sheet1 Error: {e}")
         cols = ["ID", "Date", "Name", "Age", "Gender", "Test", "Total_Bill", "Paid_Amount", "Remaining", "Result", "Unit", "Status"]
         return pd.DataFrame(columns=cols)
 
 def get_tests_list():
-    """Sheet2 se tests ki list parhna"""
     try:
-        return conn.read(worksheet="Sheet2", ttl=0).dropna(how="all")
-    except:
-        # Agar sheet khali ho to default column return karein
-        return pd.DataFrame(columns=["Test_Name", "Rate"])
+        # Hum direct Sheet2 dhoond rahe hain
+        df = conn.read(worksheet="Sheet2", ttl=0).dropna(how="all")
+        if df.empty:
+            return pd.DataFrame([{"Test_Name": "No Tests Found", "Rate": 0}])
+        return df
+    except Exception as e:
+        # Agar Sheet2 na mile toh ye default dikhaye ga
+        return pd.DataFrame([{"Test_Name": "CBC", "Rate": 500}, {"Test_Name": "Sugar", "Rate": 200}])
 
 def save_record_online(new_row_df):
-    """Sheet1 mein naya record save karna"""
     existing_data = get_full_data()
     updated_data = pd.concat([existing_data, new_row_df], ignore_index=True)
-    # Fix: Data pehle, Worksheet baad mein
     conn.update(data=updated_data, worksheet="Sheet1")
     st.cache_data.clear()
 
 def save_test_online(new_test_df):
-    """Sheet2 mein naya test save karna"""
     existing_tests = get_tests_list()
     updated_tests = pd.concat([existing_tests, new_test_df], ignore_index=True)
-    # Fix: Data pehle, Worksheet baad mein
     conn.update(data=updated_tests, worksheet="Sheet2")
     st.cache_data.clear()
