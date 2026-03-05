@@ -35,58 +35,49 @@ def save_test_local(new_test_df):
     updated_tests = pd.concat([existing_tests, new_test_df], ignore_index=True)
     updated_tests.to_csv(TESTS_FILE, index=False)
 
-# --- 2. CLEAN RECEIPT FUNCTION (FIXED FOR THERMAL PRINTER) ---
+# --- 2. CLEAN RECEIPT FUNCTION (FIXED) ---
 def show_receipt(val):
     v = val.tolist() if hasattr(val, 'tolist') else val
     try:
         receipt_html = f"""
         <style>
-            /* Screen view par kaisa dikhega */
-            .receipt-box {{
-                width: 350px;
-                padding: 15px;
-                font-family: 'Courier New', Courier, monospace;
-                border: 2px solid #000;
-                background: #fff;
-                color: #000;
-                margin: 20px auto;
-            }}
-            
-            /* PRINT SETTINGS - Fixes A4/A3 Large Paper Error */
             @media print {{
-                @page {{ 
-                    size: auto; 
-                    margin: 0; 
+                @page {{ size: auto; margin: 0mm; }}
+                body {{ background: white !important; margin: 0 !important; padding: 0 !important; }}
+                header, footer, .sidebar, [data-testid="stSidebar"], [data-testid="stHeader"], .stButton {{ 
+                    display: none !important; 
                 }}
-                body * {{ visibility: hidden; }}
-                .receipt-box, .receipt-box * {{ visibility: visible; }}
-                .receipt-box {{
+                .receipt-container {{
+                    width: 350px !important;
+                    border: none !important;
+                    margin: 0 !important;
+                    padding: 10px !important;
+                    visibility: visible !important;
                     position: absolute;
                     left: 0;
                     top: 0;
-                    width: 100% !important; /* Thermal printer width automatically adjust karega */
-                    border: none !important;
-                    margin: 0 !important;
-                    padding: 5px !important;
                 }}
-                .stButton, header, footer {{ display: none !important; }}
+                body * {{ visibility: hidden; }}
+                .receipt-container, .receipt-container * {{ visibility: visible !important; }}
             }}
-
-            .r-bold {{ font-weight: 900; font-size: 20px; text-transform: uppercase; text-align: center; }}
-            .r-header {{ text-align: center; margin-bottom: 5px; }}
-            .r-sub {{ text-align: center; font-size: 12px; font-weight: bold; margin: 2px 0; }}
-            .r-text {{ font-size: 13px; margin: 3px 0; }}
-            .r-table {{ width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 13px; }}
-            .r-table th {{ border-bottom: 2px solid #000; border-top: 2px solid #000; text-align: left; padding: 3px 0; }}
-            .r-total-sec {{ border-top: 2px solid #000; margin-top: 10px; padding-top: 5px; font-weight: bold; }}
+            .receipt-container {{
+                width: 350px;
+                border: 2px solid #000;
+                padding: 15px;
+                font-family: 'Courier New', Courier, monospace;
+                margin: 20px auto;
+                background: white;
+                color: black;
+            }}
+            .header-title {{ text-align: center; margin: 0; font-size: 22px; font-weight: 900; text-transform: uppercase; }}
+            .header-sub {{ text-align: center; font-size: 12px; font-weight: bold; margin: 2px 0; }}
+            .amt-center {{ text-align: center; }}
         </style>
 
-        <div class="receipt-box">
-            <div class="r-header">
-                <div class="r-bold">( THE LIFE CARE )</div>
-                <div class="r-sub">MAJEED COLONY SEC 2, KARACHI</div>
-                <div class="r-sub">0370-2906075</div>
-            </div>
+        <div class="receipt-container">
+            <h2 class="header-title">( THE LIFE CARE )</h2>
+            <p class="header-sub">MAJEED COLONY SEC 2, KARACHI</p>
+            <p class="header-sub">0370-2906075</p>
             <hr style="border: 1px solid #000;">
             
             <table style="width: 100%; font-size: 12px;">
@@ -95,45 +86,39 @@ def show_receipt(val):
                 <tr><td><b>Mobile:</b> {v[4]}</td><td align="right"><b>Ref:</b> SELF</td></tr>
             </table>
 
-            <table class="r-table">
-                <thead>
-                    <tr><th>Description</th><th style="text-align:center;">Qty</th><th style="text-align:right;">Amt</th></tr>
-                </thead>
-                <tbody>
+            <table style="width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 13px;">
+                <tr style="border-bottom: 2px solid #000; border-top: 2px solid #000;">
+                    <th align="left">Description</th>
+                    <th class="amt-center">Qty</th>
+                    <th align="right">Amt</th>
+                </tr>
         """
-        
         tests_list = str(v[8]).split(", ")
         for t in tests_list:
-            receipt_html += f"<tr><td>{t}</td><td style='text-align:center;'>1</td><td style='text-align:right;'>-</td></tr>"
+            receipt_html += f"<tr><td>{t}</td><td class='amt-center'>1</td><td align='right'>-</td></tr>"
 
         receipt_html += f"""
-                </tbody>
             </table>
-            
-            <div class="r-total-sec">
+
+            <div style="margin-top: 15px; border-top: 2px solid #000; padding-top: 5px; font-weight: bold;">
                 <div style="display: flex; justify-content: space-between;"><span>Total:</span> <span>Rs. {v[9]}</span></div>
                 <div style="display: flex; justify-content: space-between;"><span>Paid:</span> <span>Rs. {v[10]}</span></div>
                 <div style="display: flex; justify-content: space-between; font-size: 15px; background: #eee; padding: 2px;">
                     <span>Balance:</span> <span>Rs. {v[11]}</span>
                 </div>
             </div>
-            
-            <p style="text-align: center; font-size: 9px; margin-top: 20px;">
-                Developed by Zain - 03702906075<br>*** Software System ***
-            </p>
+            <p style="text-align: center; font-size: 9px; margin-top: 20px;">Developed by Zain - 03702906075</p>
         </div>
         """
-        
         st.markdown(receipt_html, unsafe_allow_html=True)
         st.button("Print Slip (Ctrl+P)")
             
     except Exception as e:
-        st.error(f"Slip display karne mein masla: {e}")
+        st.error(f"Error: {e}")
 
-# --- 3. PAGE CONFIG ---
+# --- REST OF THE CODE REMAINS SAME ---
 st.set_page_config(page_title="BioCloud Lab Pro", layout="wide", page_icon="🧪")
 
-# --- 4. SESSION STATE & LOGIN ---
 if 'temp_tests' not in st.session_state: st.session_state.temp_tests = [] 
 if 'auth' not in st.session_state: st.session_state['auth'] = False
 if 'show_slip' not in st.session_state: st.session_state.show_slip = None
@@ -145,7 +130,6 @@ def check_login(u, p):
         st.rerun()
     else: st.error("Invalid Username or Password")
 
-# --- 5. MAIN APP LOGIC ---
 if not st.session_state['auth']:
     show_login_page(check_login)
 else:
