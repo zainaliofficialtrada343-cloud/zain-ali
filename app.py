@@ -8,7 +8,7 @@ from receipt_design import show_receipt
 # --- 1. CSV DATABASE CONFIG ---
 PATIENT_FILE = "data_db.csv"
 TESTS_FILE = "tests_db.csv"
-EXPENSE_FILE = "expenses_db.csv" # Nayi file kharchon ke liye
+EXPENSE_FILE = "expenses_db.csv" 
 
 def get_full_data():
     cols = ["ID", "Invoice", "Date", "Name", "Mobile", "Age", "Gender", "Collected", "Test", "Total_Bill", "Paid_Amount", "Remaining", "Result", "Unit", "Status"]
@@ -30,7 +30,7 @@ def get_tests_list():
 def get_expense_data():
     if os.path.exists(EXPENSE_FILE):
         df = pd.read_csv(EXPENSE_FILE)
-        df['Date'] = pd.to_datetime(df['Date']) # Date format fix
+        df['Date'] = pd.to_datetime(df['Date']).dt.date # Fixed date format for math
         return df
     else:
         return pd.DataFrame(columns=["Date", "Category", "Description", "Amount"])
@@ -53,7 +53,6 @@ if 'temp_tests' not in st.session_state: st.session_state.temp_tests = []
 if 'auth' not in st.session_state: st.session_state['auth'] = False
 if 'show_slip' not in st.session_state: st.session_state.show_slip = None
 if 'saved_mobile' not in st.session_state: st.session_state.saved_mobile = ""
-# Lab Info state
 if 'lab_name' not in st.session_state: st.session_state.lab_name = "MAJEED COLONY SEC 2, KARACHI"
 if 'lab_phone' not in st.session_state: st.session_state.lab_phone = "03XX-XXXXXXX"
 
@@ -92,10 +91,7 @@ else:
     with st.sidebar:
         st.markdown("<h1 style='text-align: center;'>🧪 BioCloud Pro</h1>", unsafe_allow_html=True)
         st.divider()
-        
-        # Navigation
         menu = st.radio("Navigation", ["Registration", "Dues & Reports", "Expense Manager", "History Search", "Excel History", "⚙️ Lab Settings"])
-        
         st.divider()
         if st.checkbox("Enable Delete Option"):
             if st.button("⚠️ Delete All Patient Data", type="primary"):
@@ -103,7 +99,6 @@ else:
                     os.remove(PATIENT_FILE)
                     st.success("Sabh data delete ho gaya!")
                     st.rerun()
-
         if st.button("Logout"):
             st.session_state['auth'] = False
             st.rerun()
@@ -137,11 +132,15 @@ else:
             p_name = r1c1.text_input("Patient Name")
             p_mobile = r1c2.text_input("Mobile No", value=st.session_state.saved_mobile)
             st.session_state.saved_mobile = p_mobile
-            p_inv = r1c3.text_input("Invoice #", value=f"INV-{datetime.now().strftime('%H%M%S')}")
-            r2c1, r2c2, r2c3 = st.columns([1, 1, 2])
+            # Auto Sequence Invoice
+            inv_seq = f"INV-{len(df) + 101}"
+            p_inv = r1c3.text_input("Invoice #", value=inv_seq)
+            
+            r2c1, r2c2, r2c3, r2c4 = st.columns([1, 1, 1, 1])
             p_age = r2c1.number_input("Age", 1, 120, value=25)
             p_gender = r2c2.selectbox("Gender", ["Male", "Female", "Other"])
-            p_coll = r2c3.text_input("Doctor / Ref By", value="Self")
+            p_ref = r2c3.text_input("Doctor / Ref By", value="Self")
+            p_coll = r2c4.selectbox("Collected From", ["Lab Box", "Home", "Hospital"]) # Wapas add kar diya
 
         st.subheader("Add Tests to Bill")
         col_t1, col_t2, col_t3 = st.columns([2, 1, 1])
@@ -164,12 +163,15 @@ else:
                     st.rerun()
             
             total_bill = sum(t['Rate'] for t in st.session_state.temp_tests)
-            paid_amt = st.number_input("Paid Amount", 0)
+            # Validation: Paid amount cannot exceed total bill
+            paid_amt = st.number_input("Paid Amount", 0, max_value=int(total_bill))
+            
             if st.button("💾 Final Save Record", use_container_width=True):
                 if p_name and st.session_state.temp_tests:
                     all_tests_str = ", ".join([t['Test'] for t in st.session_state.temp_tests])
                     rem = total_bill - paid_amt
                     new_id = len(df) + 1
+                    # Collected field update
                     data_list = [new_id, p_inv, today, p_name, p_mobile, p_age, p_gender, p_coll, all_tests_str, total_bill, paid_amt, rem, "-", "-", ("Paid" if rem<=0 else "Pending")]
                     save_record_local(pd.DataFrame([data_list], columns=required_cols))
                     st.session_state.show_slip = data_list 
@@ -207,7 +209,7 @@ else:
                 e_desc = st.text_input("Description")
                 e_amt = st.number_input("Amount", 0)
                 if st.button("Save Expense"):
-                    new_ex = pd.DataFrame([[today, e_cat, e_desc, e_amt]], columns=["Date", "Category", "Description", "Amount"])
+                    new_ex = pd.DataFrame([[today_dt, e_cat, e_desc, e_amt]], columns=["Date", "Category", "Description", "Amount"])
                     pd.concat([ex_df, new_ex], ignore_index=True).to_csv(EXPENSE_FILE, index=False)
                     st.success("Expense Saved!")
                     st.rerun()
@@ -216,9 +218,11 @@ else:
             f_col1, f_col2 = st.columns(2)
             view_type = f_col1.selectbox("View By", ["Daily", "Monthly", "Yearly", "All Time"])
             if not ex_df.empty:
-                if view_type == "Daily": filtered_ex = ex_df[ex_df['Date'].dt.date == today_dt]
-                elif view_type == "Monthly": filtered_ex = ex_df[ex_df['Date'].dt.month == today_dt.month]
-                elif view_type == "Yearly": filtered_ex = ex_df[ex_df['Date'].dt.year == today_dt.year]
+                # Proper date comparison
+                ex_df['Date'] = pd.to_datetime(ex_df['Date']).dt.date
+                if view_type == "Daily": filtered_ex = ex_df[ex_df['Date'] == today_dt]
+                elif view_type == "Monthly": filtered_ex = ex_df[pd.to_datetime(ex_df['Date']).dt.month == today_dt.month]
+                elif view_type == "Yearly": filtered_ex = ex_df[pd.to_datetime(ex_df['Date']).dt.year == today_dt.year]
                 else: filtered_ex = ex_df
                 total_ex = filtered_ex['Amount'].sum()
                 st.markdown(f"### Total Expense ({view_type}): **Rs. {total_ex}**")
@@ -257,24 +261,35 @@ else:
             st.dataframe(filtered_df, use_container_width=True, hide_index=True)
         else: st.dataframe(df, use_container_width=True, hide_index=True)
 
-    # --- NAYA OPTION: LAB SETTINGS & CASH ---
     elif menu == "⚙️ Lab Settings":
         st.header("⚙️ Lab System Settings & Reports")
         
-        # Cash Counter Section (Ab yahan shift ho gaya hai)
-        st.subheader("💰 Aaj Ki Cash Report")
+        # Cash Counter with Expense Link
+        st.subheader("💰 Aaj Ki Cash & Profit Report")
+        ex_df = get_expense_data()
+        today_ex = ex_df[ex_df['Date'] == today_dt]['Amount'].sum() if not ex_df.empty else 0
+        
         if not df.empty and 'Date' in df.columns:
             cash_df = df[df['Date'] == today]
             total_cash = pd.to_numeric(cash_df['Paid_Amount'], errors='coerce').sum()
             total_dues = pd.to_numeric(cash_df['Remaining'], errors='coerce').sum()
-        else: total_cash, total_dues = 0, 0
+            net_profit = total_cash - today_ex
+        else: 
+            total_cash, total_dues, net_profit = 0, 0, 0
         
-        stat_c1, stat_c2 = st.columns(2)
+        stat_c1, stat_c2, stat_c3 = st.columns(3)
         stat_c1.metric("Aaj Ka Kul Cash", f"Rs. {total_cash}")
-        stat_c2.metric("Aaj Ke Kul Dues", f"Rs. {total_dues}")
+        stat_c2.metric("Aaj Ka Kharcha", f"Rs. {today_ex}")
+        stat_c3.metric("Net Profit (Cash-Exp)", f"Rs. {net_profit}")
         
         st.divider()
-        
+        # Backup Button
+        st.subheader("📥 Data Backup (Excel)")
+        if not df.empty:
+            csv_data = df.to_csv(index=False).encode('utf-8')
+            st.download_button("Download Full Patient History", data=csv_data, file_name=f"Lab_Backup_{today}.csv", mime='text/csv')
+
+        st.divider()
         # Lab Info Section
         st.subheader("📍 Update Lab Information")
         c1, c2 = st.columns(2)
