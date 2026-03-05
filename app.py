@@ -29,7 +29,9 @@ def get_tests_list():
 
 def get_expense_data():
     if os.path.exists(EXPENSE_FILE):
-        return pd.read_csv(EXPENSE_FILE)
+        df = pd.read_csv(EXPENSE_FILE)
+        df['Date'] = pd.to_datetime(df['Date']) # Date format fix
+        return df
     else:
         return pd.DataFrame(columns=["Date", "Category", "Description", "Amount"])
 
@@ -80,11 +82,19 @@ else:
     )
 
     df = get_full_data()
-    today = str(datetime.now().date())
+    today_dt = datetime.now().date()
+    today = str(today_dt)
     required_cols = ["ID", "Invoice", "Date", "Name", "Mobile", "Age", "Gender", "Collected", "Test", "Total_Bill", "Paid_Amount", "Remaining", "Result", "Unit", "Status"]
 
     with st.sidebar:
         st.markdown("<h1 style='text-align: center;'>🧪 BioCloud Pro</h1>", unsafe_allow_html=True)
+        
+        # Naya Box: Lab Mobile Number Add karne ke liye
+        st.markdown("### 📍 Lab Info")
+        st.info("MAJEED COLONY SEC 2, KARACHI")
+        lab_phone = st.text_input("Lab Contact No.", value="03XX-XXXXXXX")
+        
+        st.divider()
         if not df.empty and 'Date' in df.columns:
             cash_df = df[df['Date'] == today]
             total_cash = pd.to_numeric(cash_df['Paid_Amount'], errors='coerce').sum()
@@ -94,7 +104,6 @@ else:
         st.metric("Aaj Ke Dues", f"Rs. {total_dues}")
         st.divider()
         
-        # Naye options yahan add kiye hain
         menu = st.radio("Navigation", ["Registration", "Dues & Reports", "Expense Manager", "History Search", "Excel History"])
         
         st.divider()
@@ -109,7 +118,6 @@ else:
             st.session_state['auth'] = False
             st.rerun()
 
-    # --- 1. REGISTRATION (PEHLE WAISA HI HAI) ---
     if menu == "Registration":
         st.header("New Patient Registration")
         if st.session_state.show_slip:
@@ -143,7 +151,7 @@ else:
             r2c1, r2c2, r2c3 = st.columns([1, 1, 2])
             p_age = r2c1.number_input("Age", 1, 120, value=25)
             p_gender = r2c2.selectbox("Gender", ["Male", "Female", "Other"])
-            p_coll = r2c3.text_input("Doctor / Ref By", value="Self") # Referral feature yahan dal diya
+            p_coll = r2c3.text_input("Doctor / Ref By", value="Self")
 
         st.subheader("Add Tests to Bill")
         col_t1, col_t2, col_t3 = st.columns([2, 1, 1])
@@ -178,7 +186,6 @@ else:
                     st.session_state.temp_tests = [] 
                     st.rerun()
 
-    # --- 2. DUES & REPORTS (PEHLE WAISA HI HAI) ---
     elif menu == "Dues & Reports":
         st.header("Update Records & Results")
         if not df.empty:
@@ -200,23 +207,34 @@ else:
             else:
                 st.info("Koi Pending record nahi hai.")
 
-    # --- 3. EXPENSE MANAGER (NEW) ---
     elif menu == "Expense Manager":
         st.header("💸 Kharcha Pani (Expense Manager)")
         ex_df = get_expense_data()
-        with st.expander("Add New Expense"):
-            e_cat = st.selectbox("Category", ["Staff Salary", "Chemicals/Kits", "Rent/Bills", "Tea/Food", "Other"])
-            e_desc = st.text_input("Description")
-            e_amt = st.number_input("Amount", 0)
-            if st.button("Save Expense"):
-                new_ex = pd.DataFrame([[today, e_cat, e_desc, e_amt]], columns=["Date", "Category", "Description", "Amount"])
-                pd.concat([ex_df, new_ex], ignore_index=True).to_csv(EXPENSE_FILE, index=False)
-                st.success("Expense Saved!")
-                st.rerun()
-        st.subheader("Recent Expenses")
-        st.dataframe(ex_df, use_container_width=True)
+        tab1, tab2 = st.tabs(["➕ Add Expense", "📊 Expense Reports"])
+        with tab1:
+            with st.expander("Enter New Expense Details", expanded=True):
+                e_cat = st.selectbox("Category", ["Staff Salary", "Chemicals/Kits", "Rent/Bills", "Tea/Food", "Other"])
+                e_desc = st.text_input("Description")
+                e_amt = st.number_input("Amount", 0)
+                if st.button("Save Expense"):
+                    new_ex = pd.DataFrame([[today, e_cat, e_desc, e_amt]], columns=["Date", "Category", "Description", "Amount"])
+                    pd.concat([ex_df, new_ex], ignore_index=True).to_csv(EXPENSE_FILE, index=False)
+                    st.success("Expense Saved!")
+                    st.rerun()
+        with tab2:
+            st.subheader("Filter Expenses")
+            f_col1, f_col2 = st.columns(2)
+            view_type = f_col1.selectbox("View By", ["Daily", "Monthly", "Yearly", "All Time"])
+            if not ex_df.empty:
+                if view_type == "Daily": filtered_ex = ex_df[ex_df['Date'].dt.date == today_dt]
+                elif view_type == "Monthly": filtered_ex = ex_df[ex_df['Date'].dt.month == today_dt.month]
+                elif view_type == "Yearly": filtered_ex = ex_df[ex_df['Date'].dt.year == today_dt.year]
+                else: filtered_ex = ex_df
+                total_ex = filtered_ex['Amount'].sum()
+                st.markdown(f"### Total Expense ({view_type}): **Rs. {total_ex}**")
+                st.dataframe(filtered_ex, use_container_width=True)
+            else: st.info("Abhi tak koi kharcha add nahi kiya gaya.")
 
-    # --- 4. HISTORY SEARCH (NEW & IMPROVED) ---
     elif menu == "History Search":
         st.header("🔍 Advanced Patient Search")
         search_mobile = st.text_input("Enter Patient Mobile Number to see History")
@@ -225,19 +243,38 @@ else:
             if not hist.empty:
                 st.write(f"Found {len(hist)} records for this number:")
                 st.dataframe(hist, use_container_width=True)
-            else:
-                st.warning("No record found for this number.")
+            else: st.warning("No record found for this number.")
 
-    # --- 5. EXCEL HISTORY (PEHLE WAISA HI HAI) ---
     elif menu == "Excel History":
         st.header("📊 Lab Database History")
-        with st.expander("🖨️ Reprint Old Slip"):
+        
+        # --- IMPROVED REPRINT SECTION ---
+        with st.expander("🖨️ Reprint Old Slip (Smart Search)", expanded=True):
             if not df.empty:
-                patient_names = df["Name"].tolist()
-                selected_p = st.selectbox("Select Patient to Print", ["-- Select --"] + patient_names)
-                if selected_p != "-- Select --":
-                    p_to_print = df[df["Name"] == selected_p].iloc[-1]
-                    show_receipt(p_to_print.tolist()) 
+                search_term = st.text_input("Search by Name, Mobile or Invoice #")
+                if search_term:
+                    # Har field mein search karega (Smart Search)
+                    filtered_search = df[
+                        df['Name'].str.contains(search_term, case=False) | 
+                        df['Mobile'].astype(str).str.contains(search_term) | 
+                        df['Invoice'].str.contains(search_term, case=False)
+                    ]
+                    
+                    if not filtered_search.empty:
+                        # Display options with more detail
+                        options = filtered_search.apply(lambda x: f"{x['Name']} | {x['Invoice']} | {x['Date']}", axis=1).tolist()
+                        selected_option = st.selectbox("Select Patient to Print", ["-- Select --"] + options)
+                        
+                        if selected_option != "-- Select --":
+                            # Get the original row based on selection
+                            idx = options.index(selected_option)
+                            p_to_print = filtered_search.iloc[idx]
+                            show_receipt(p_to_print.tolist())
+                    else:
+                        st.warning("No matching patient found.")
+                else:
+                    st.info("Upar search box mein naam ya number likhein.")
+
         st.divider()
         search_query = st.text_input("🔍 Search History Table")
         if search_query:
