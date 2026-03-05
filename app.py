@@ -140,7 +140,7 @@ else:
             p_age = r2c1.number_input("Age", 1, 120, value=25)
             p_gender = r2c2.selectbox("Gender", ["Male", "Female", "Other"])
             p_ref = r2c3.text_input("Doctor / Ref By", value="Self")
-            p_coll = r2c4.selectbox("Collected From", ["Lab Box", "Home", "Hospital"]) # Wapas add kar diya
+            p_coll = r2c4.selectbox("Collected From", ["Lab Box", "Home", "Hospital"]) 
 
         st.subheader("Add Tests to Bill")
         col_t1, col_t2, col_t3 = st.columns([2, 1, 1])
@@ -163,7 +163,6 @@ else:
                     st.rerun()
             
             total_bill = sum(t['Rate'] for t in st.session_state.temp_tests)
-            # Validation: Paid amount cannot exceed total bill
             paid_amt = st.number_input("Paid Amount", 0, max_value=int(total_bill))
             
             if st.button("💾 Final Save Record", use_container_width=True):
@@ -171,7 +170,6 @@ else:
                     all_tests_str = ", ".join([t['Test'] for t in st.session_state.temp_tests])
                     rem = total_bill - paid_amt
                     new_id = len(df) + 1
-                    # Collected field update
                     data_list = [new_id, p_inv, today, p_name, p_mobile, p_age, p_gender, p_coll, all_tests_str, total_bill, paid_amt, rem, "-", "-", ("Paid" if rem<=0 else "Pending")]
                     save_record_local(pd.DataFrame([data_list], columns=required_cols))
                     st.session_state.show_slip = data_list 
@@ -218,15 +216,20 @@ else:
             f_col1, f_col2 = st.columns(2)
             view_type = f_col1.selectbox("View By", ["Daily", "Monthly", "Yearly", "All Time"])
             if not ex_df.empty:
-                # Proper date comparison
                 ex_df['Date'] = pd.to_datetime(ex_df['Date']).dt.date
                 if view_type == "Daily": filtered_ex = ex_df[ex_df['Date'] == today_dt]
                 elif view_type == "Monthly": filtered_ex = ex_df[pd.to_datetime(ex_df['Date']).dt.month == today_dt.month]
                 elif view_type == "Yearly": filtered_ex = ex_df[pd.to_datetime(ex_df['Date']).dt.year == today_dt.year]
                 else: filtered_ex = ex_df
+                
                 total_ex = filtered_ex['Amount'].sum()
                 st.markdown(f"### Total Expense ({view_type}): **Rs. {total_ex}**")
                 st.dataframe(filtered_ex, use_container_width=True)
+                
+                # --- NEW PRINT/DOWNLOAD REPORT OPTION ---
+                st.divider()
+                exp_csv = filtered_ex.to_csv(index=False).encode('utf-8')
+                st.download_button(f"📥 Download {view_type} Expense Report (Excel)", data=exp_csv, file_name=f"Expense_Report_{view_type}_{today}.csv", mime='text/csv')
             else: st.info("Abhi tak koi kharcha add nahi kiya gaya.")
 
     elif menu == "History Search":
@@ -264,7 +267,6 @@ else:
     elif menu == "⚙️ Lab Settings":
         st.header("⚙️ Lab System Settings & Reports")
         
-        # Cash Counter with Expense Link
         st.subheader("💰 Aaj Ki Cash & Profit Report")
         ex_df = get_expense_data()
         today_ex = ex_df[ex_df['Date'] == today_dt]['Amount'].sum() if not ex_df.empty else 0
@@ -283,14 +285,12 @@ else:
         stat_c3.metric("Net Profit (Cash-Exp)", f"Rs. {net_profit}")
         
         st.divider()
-        # Backup Button
         st.subheader("📥 Data Backup (Excel)")
         if not df.empty:
             csv_data = df.to_csv(index=False).encode('utf-8')
             st.download_button("Download Full Patient History", data=csv_data, file_name=f"Lab_Backup_{today}.csv", mime='text/csv')
 
         st.divider()
-        # Lab Info Section
         st.subheader("📍 Update Lab Information")
         c1, c2 = st.columns(2)
         new_lab_name = c1.text_input("Lab Address / Name", value=st.session_state.lab_name)
