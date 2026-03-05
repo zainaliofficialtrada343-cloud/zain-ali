@@ -35,34 +35,42 @@ def save_test_local(new_test_df):
     updated_tests = pd.concat([existing_tests, new_test_df], ignore_index=True)
     updated_tests.to_csv(TESTS_FILE, index=False)
 
-# --- 2. CLEAN RECEIPT FUNCTION (80mm Thermal Printer Optimized) ---
+# --- 2. CLEAN RECEIPT FUNCTION (FIXED FOR 80mm PRINTING) ---
 def show_receipt(val):
     v = val.tolist() if hasattr(val, 'tolist') else val
     try:
-        # Custom CSS for 80mm Terminal Style Print
+        # Improved CSS: Is se sirf receipt box print hoga, baki screen blank rahegi
         receipt_html = f"""
         <style>
             @media print {{
+                /* Hide everything except the receipt box */
                 body * {{ visibility: hidden; }}
                 .receipt-box, .receipt-box * {{ visibility: visible; }}
-                .receipt-box {{ position: absolute; left: 0; top: 0; width: 80mm; }}
-                .no-print {{ display: none !important; }}
+                .receipt-box {{ 
+                    position: absolute; 
+                    left: 0; 
+                    top: 0; 
+                    width: 80mm; 
+                    border: none !important; 
+                }}
+                /* Remove Streamlit default spacing */
+                .main .block-container {{ padding: 0 !important; }}
             }}
             .receipt-box {{
-                width: 75mm;
-                padding: 10px;
+                width: 72mm; /* Better fit for 80mm roll */
+                padding: 5px;
                 font-family: 'Courier New', Courier, monospace;
                 border: 1px dashed #000;
                 background-color: #fff;
                 color: #000;
-                margin-bottom: 20px;
+                margin: 10px auto;
             }}
             .r-bold {{ font-weight: bold; font-size: 16px; text-transform: uppercase; }}
-            .r-header {{ text-align: center; margin-bottom: 10px; border-bottom: 1px solid #000; padding-bottom: 5px; }}
-            .r-text {{ font-size: 13px; margin: 2px 0; }}
-            .r-table {{ width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 13px; }}
+            .r-header {{ text-align: center; margin-bottom: 8px; border-bottom: 1px solid #000; padding-bottom: 5px; }}
+            .r-text {{ font-size: 12px; margin: 2px 0; }}
+            .r-table {{ width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 12px; }}
             .r-table th {{ border-bottom: 1px dashed #000; text-align: left; }}
-            .r-total {{ border-top: 1px solid #000; margin-top: 10px; padding-top: 5px; font-weight: bold; }}
+            .r-total {{ border-top: 1px solid #000; margin-top: 8px; padding-top: 5px; font-weight: bold; }}
         </style>
 
         <div class="receipt-box">
@@ -96,10 +104,10 @@ def show_receipt(val):
             <div class="r-total">
                 <div class="r-text">TOTAL BILL: <span style="float:right;">Rs. {v[9]}</span></div>
                 <div class="r-text">PAID AMOUNT: <span style="float:right;">Rs. {v[10]}</span></div>
-                <div class="r-text" style="font-size: 15px;">BALANCE: <span style="float:right;">Rs. {v[11]}</span></div>
+                <div class="r-text" style="font-size: 14px;">BALANCE: <span style="float:right;">Rs. {v[11]}</span></div>
             </div>
             
-            <div style="text-align:center; margin-top:15px; font-size:11px; border-top: 1px solid #000; padding-top: 5px;">
+            <div style="text-align:center; margin-top:15px; font-size:10px; border-top: 1px solid #000; padding-top: 5px;">
                 Developed by Zain - 03702906075<br>*** Software System ***
             </div>
         </div>
