@@ -35,45 +35,68 @@ def save_test_local(new_test_df):
     updated_tests = pd.concat([existing_tests, new_test_df], ignore_index=True)
     updated_tests.to_csv(TESTS_FILE, index=False)
 
-# --- 2. CLEAN RECEIPT FUNCTION (FIXED FOR 80mm PRINTING) ---
+# --- 2. CLEAN RECEIPT FUNCTION (INTEGRATED PRINT SETTINGS) ---
 def show_receipt(val):
     v = val.tolist() if hasattr(val, 'tolist') else val
     try:
-        # Improved CSS: Is se sirf receipt box print hoga, baki screen blank rahegi
+        # Aapki di hui Print Settings Coding yahan apply ki hai
         receipt_html = f"""
         <style>
             @media print {{
-                /* Hide everything except the receipt box */
-                body * {{ visibility: hidden; }}
-                .receipt-box, .receipt-box * {{ visibility: visible; }}
-                .receipt-box {{ 
-                    position: absolute; 
-                    left: 0; 
-                    top: 0; 
-                    width: 80mm; 
-                    border: none !important; 
+                /* 1. Poore page ka background white rakhta hai */
+                body {{ 
+                    background: white !important; 
+                    padding: 0 !important; 
+                    margin: 0 !important; 
+                    visibility: hidden;
                 }}
-                /* Remove Streamlit default spacing */
+
+                /* 2. Control Panel aur Buttons ko hide karta hai */
+                header, footer, .sidebar, .btn-print, .no-print, .stButton, [data-testid="stSidebar"], [data-testid="stHeader"] {{ 
+                    display: none !important; 
+                }}
+
+                /* 3. Slip ko poore page par set karta hai */
+                .preview-area, .receipt-box {{ 
+                    visibility: visible !important;
+                    position: absolute;
+                    left: 0;
+                    top: 0;
+                    margin: 0 !important; 
+                    padding: 5px !important; 
+                    display: block !important; 
+                }}
+
+                /* 4. Slip ka size thermal printer (80mm) ke mutabiq */
+                .receipt-box {{ 
+                    width: 100% !important; 
+                    box-shadow: none !important; 
+                    border: none !important;
+                }}
+                
+                /* Streamlit specific container fix */
                 .main .block-container {{ padding: 0 !important; }}
             }}
+            
+            /* Screen display settings */
             .receipt-box {{
-                width: 72mm; /* Better fit for 80mm roll */
-                padding: 5px;
+                width: 75mm;
+                padding: 10px;
                 font-family: 'Courier New', Courier, monospace;
                 border: 1px dashed #000;
                 background-color: #fff;
                 color: #000;
-                margin: 10px auto;
+                margin: 20px auto;
             }}
-            .r-bold {{ font-weight: bold; font-size: 16px; text-transform: uppercase; }}
-            .r-header {{ text-align: center; margin-bottom: 8px; border-bottom: 1px solid #000; padding-bottom: 5px; }}
-            .r-text {{ font-size: 12px; margin: 2px 0; }}
-            .r-table {{ width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 12px; }}
+            .r-bold {{ font-weight: bold; font-size: 16px; text-transform: uppercase; text-align: center; }}
+            .r-header {{ text-align: center; margin-bottom: 10px; border-bottom: 1px solid #000; padding-bottom: 5px; }}
+            .r-text {{ font-size: 13px; margin: 2px 0; }}
+            .r-table {{ width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 13px; }}
             .r-table th {{ border-bottom: 1px dashed #000; text-align: left; }}
-            .r-total {{ border-top: 1px solid #000; margin-top: 8px; padding-top: 5px; font-weight: bold; }}
+            .r-total {{ border-top: 1px solid #000; margin-top: 10px; padding-top: 5px; font-weight: bold; }}
         </style>
 
-        <div class="receipt-box">
+        <div class="receipt-box preview-area">
             <div class="r-header">
                 <div class="r-bold">( THE LIFE CARE )</div>
                 <div class="r-text">MAJEED COLONY SEC 2, KARACHI</div>
@@ -104,10 +127,10 @@ def show_receipt(val):
             <div class="r-total">
                 <div class="r-text">TOTAL BILL: <span style="float:right;">Rs. {v[9]}</span></div>
                 <div class="r-text">PAID AMOUNT: <span style="float:right;">Rs. {v[10]}</span></div>
-                <div class="r-text" style="font-size: 14px;">BALANCE: <span style="float:right;">Rs. {v[11]}</span></div>
+                <div class="r-text" style="font-size: 15px;">BALANCE: <span style="float:right;">Rs. {v[11]}</span></div>
             </div>
             
-            <div style="text-align:center; margin-top:15px; font-size:10px; border-top: 1px solid #000; padding-top: 5px;">
+            <div style="text-align:center; margin-top:15px; font-size:11px; border-top: 1px solid #000; padding-top: 5px;">
                 Developed by Zain - 03702906075<br>*** Software System ***
             </div>
         </div>
