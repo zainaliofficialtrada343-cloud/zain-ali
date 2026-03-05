@@ -67,7 +67,12 @@ def show_receipt(v):
                     </tr>
                     <tr>
                         <td><b>Mobile:</b> {v[4]}</td>
-                        <td align="right"><b>Collected:</b> {v[7]}</td>
+                        <td align="right"><b>Collected:</b> Lab</td>
+                    </tr>
+                    <tr>
+                        <td colspan="2" style="border-top: 1px solid #f9f9f9; padding-top: 5px;">
+                            <b>Ref By / Doctor:</b> {v[7]}
+                        </td>
                     </tr>
                 </table>
 
