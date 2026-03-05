@@ -56,6 +56,23 @@ if not st.session_state['auth']:
     show_login_page(check_login)
 else:
     local_css("style.css")
+
+    # --- BACKGROUND IMAGE ADDED HERE (No other changes) ---
+    st.markdown(
+        """
+        <style>
+        .stApp {
+            background: linear-gradient(rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0.85)), 
+                        url("https://raw.githubusercontent.com/zainaliofficialtrada343-cloud/BioCloud_/main/lab_girl.jpg");
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+        }
+        </style>
+        """,
+        unsafe_allow_html=True
+    )
+
     df = get_full_data()
     today = str(datetime.now().date())
     required_cols = ["ID", "Invoice", "Date", "Name", "Mobile", "Age", "Gender", "Collected", "Test", "Total_Bill", "Paid_Amount", "Remaining", "Result", "Unit", "Status"]
@@ -88,7 +105,7 @@ else:
         st.header("New Patient Registration")
         if st.session_state.show_slip:
             st.success("✅ Record Saved!")
-            # Receipt helper call (ab ye receipt_design.py se chalega)
+            # Receipt helper function call
             show_receipt(st.session_state.show_slip)
             if st.button("Register Another Patient"):
                 st.session_state.show_slip = None
@@ -147,6 +164,7 @@ else:
                     all_tests_str = ", ".join([t['Test'] for t in st.session_state.temp_tests])
                     rem = total_bill - paid_amt
                     new_id = len(df) + 1
+                    # Data list for the record
                     data_list = [new_id, p_inv, today, p_name, p_mobile, p_age, p_gender, p_coll, all_tests_str, total_bill, paid_amt, rem, "-", "-", ("Paid" if rem<=0 else "Pending")]
                     save_record_local(pd.DataFrame([data_list], columns=required_cols))
                     st.session_state.show_slip = data_list 
@@ -182,7 +200,6 @@ else:
                 selected_p = st.selectbox("Select Patient to Print", ["-- Select --"] + patient_names)
                 if selected_p != "-- Select --":
                     p_to_print = df[df["Name"] == selected_p].iloc[-1]
-                    # Ensure data is passed as a list
                     show_receipt(p_to_print.tolist()) 
         st.divider()
         search_query = st.text_input("🔍 Search History")
