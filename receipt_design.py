@@ -3,9 +3,13 @@ import streamlit.components.v1 as components
 
 def show_receipt(v):
     try:
+        # Lab Contact number session state se uthayein (Default agar na mile)
+        lab_phone = st.session_state.get('lab_phone', '03XX-XXXXXXX')
+        
         # Tests aur unke rates ki setting
         tests_list = str(v[8]).split(", ")
         total_bill = float(v[9])
+        
         # Har test ka average rate (Amt fix)
         per_test_rate = total_bill / len(tests_list) if len(tests_list) > 0 else 0
         
@@ -34,7 +38,7 @@ def show_receipt(v):
                     margin: 0 auto;
                     padding: 20px;
                     background: white;
-                    border: 1px solid #eee; /* Screen par halka sa border, print mein nahi aayega */
+                    border: 1px solid #eee;
                 }}
                 .header {{ text-align: center; border-bottom: 3px solid #000; padding-bottom: 10px; }}
                 .btn-print {{ 
@@ -51,6 +55,7 @@ def show_receipt(v):
                 <div class="header">
                     <h1 style="margin: 0; font-size: 26px;">THE LIFE CARE</h1>
                     <p style="margin: 5px 0; font-size: 14px;">MAJEED COLONY SEC 2, KARACHI</p>
+                    <p style="margin: 2px 0; font-size: 15px; font-weight: bold;">Contact: {lab_phone}</p>
                     <div style="border: 1px solid #000; display: inline-block; padding: 2px 15px; margin-top: 10px; font-weight: bold;">
                         PATIENT RECEIPT
                     </div>
