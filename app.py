@@ -35,79 +35,65 @@ def save_test_local(new_test_df):
     updated_tests = pd.concat([existing_tests, new_test_df], ignore_index=True)
     updated_tests.to_csv(TESTS_FILE, index=False)
 
-# --- 2. CLEAN RECEIPT FUNCTION (INTEGRATED PRINT SETTINGS) ---
+# --- 2. CLEAN RECEIPT FUNCTION (FIXED FOR THERMAL PRINTER) ---
 def show_receipt(val):
     v = val.tolist() if hasattr(val, 'tolist') else val
     try:
-        # Aapki di hui Print Settings Coding yahan apply ki hai
         receipt_html = f"""
         <style>
-            @media print {{
-                /* 1. Poore page ka background white rakhta hai */
-                body {{ 
-                    background: white !important; 
-                    padding: 0 !important; 
-                    margin: 0 !important; 
-                    visibility: hidden;
-                }}
-
-                /* 2. Control Panel aur Buttons ko hide karta hai */
-                header, footer, .sidebar, .btn-print, .no-print, .stButton, [data-testid="stSidebar"], [data-testid="stHeader"] {{ 
-                    display: none !important; 
-                }}
-
-                /* 3. Slip ko poore page par set karta hai */
-                .preview-area, .receipt-box {{ 
-                    visibility: visible !important;
-                    position: absolute;
-                    left: 0;
-                    top: 0;
-                    margin: 0 !important; 
-                    padding: 5px !important; 
-                    display: block !important; 
-                }}
-
-                /* 4. Slip ka size thermal printer (80mm) ke mutabiq */
-                .receipt-box {{ 
-                    width: 100% !important; 
-                    box-shadow: none !important; 
-                    border: none !important;
-                }}
-                
-                /* Streamlit specific container fix */
-                .main .block-container {{ padding: 0 !important; }}
-            }}
-            
-            /* Screen display settings */
+            /* Screen view par kaisa dikhega */
             .receipt-box {{
-                width: 75mm;
-                padding: 10px;
+                width: 350px;
+                padding: 15px;
                 font-family: 'Courier New', Courier, monospace;
-                border: 1px dashed #000;
-                background-color: #fff;
+                border: 2px solid #000;
+                background: #fff;
                 color: #000;
                 margin: 20px auto;
             }}
-            .r-bold {{ font-weight: bold; font-size: 16px; text-transform: uppercase; text-align: center; }}
-            .r-header {{ text-align: center; margin-bottom: 10px; border-bottom: 1px solid #000; padding-bottom: 5px; }}
-            .r-text {{ font-size: 13px; margin: 2px 0; }}
+            
+            /* PRINT SETTINGS - Fixes A4/A3 Large Paper Error */
+            @media print {{
+                @page {{ 
+                    size: auto; 
+                    margin: 0; 
+                }}
+                body * {{ visibility: hidden; }}
+                .receipt-box, .receipt-box * {{ visibility: visible; }}
+                .receipt-box {{
+                    position: absolute;
+                    left: 0;
+                    top: 0;
+                    width: 100% !important; /* Thermal printer width automatically adjust karega */
+                    border: none !important;
+                    margin: 0 !important;
+                    padding: 5px !important;
+                }}
+                .stButton, header, footer {{ display: none !important; }}
+            }}
+
+            .r-bold {{ font-weight: 900; font-size: 20px; text-transform: uppercase; text-align: center; }}
+            .r-header {{ text-align: center; margin-bottom: 5px; }}
+            .r-sub {{ text-align: center; font-size: 12px; font-weight: bold; margin: 2px 0; }}
+            .r-text {{ font-size: 13px; margin: 3px 0; }}
             .r-table {{ width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 13px; }}
-            .r-table th {{ border-bottom: 1px dashed #000; text-align: left; }}
-            .r-total {{ border-top: 1px solid #000; margin-top: 10px; padding-top: 5px; font-weight: bold; }}
+            .r-table th {{ border-bottom: 2px solid #000; border-top: 2px solid #000; text-align: left; padding: 3px 0; }}
+            .r-total-sec {{ border-top: 2px solid #000; margin-top: 10px; padding-top: 5px; font-weight: bold; }}
         </style>
 
-        <div class="receipt-box preview-area">
+        <div class="receipt-box">
             <div class="r-header">
                 <div class="r-bold">( THE LIFE CARE )</div>
-                <div class="r-text">MAJEED COLONY SEC 2, KARACHI</div>
-                <div class="r-text">0370-2906075</div>
+                <div class="r-sub">MAJEED COLONY SEC 2, KARACHI</div>
+                <div class="r-sub">0370-2906075</div>
             </div>
+            <hr style="border: 1px solid #000;">
             
-            <div class="r-text"><b>Inv:</b> {v[1]} <span style="float:right;"><b>Date:</b> {v[2]}</span></div>
-            <div class="r-text"><b>Name:</b> {v[3]}</div>
-            <div class="r-text"><b>Age/Gen:</b> {v[5]} / {v[6]}</div>
-            <div class="r-text"><b>Mobile:</b> {v[4]}</div>
-            <hr style="border-top: 1px dashed #000;">
+            <table style="width: 100%; font-size: 12px;">
+                <tr><td><b>Patient:</b> {v[3]}</td><td align="right"><b>Inv:</b> {v[1]}</td></tr>
+                <tr><td><b>Age/Gen:</b> {v[5]} / {v[6]}</td><td align="right"><b>Date:</b> {v[2]}</td></tr>
+                <tr><td><b>Mobile:</b> {v[4]}</td><td align="right"><b>Ref:</b> SELF</td></tr>
+            </table>
 
             <table class="r-table">
                 <thead>
@@ -124,20 +110,22 @@ def show_receipt(val):
                 </tbody>
             </table>
             
-            <div class="r-total">
-                <div class="r-text">TOTAL BILL: <span style="float:right;">Rs. {v[9]}</span></div>
-                <div class="r-text">PAID AMOUNT: <span style="float:right;">Rs. {v[10]}</span></div>
-                <div class="r-text" style="font-size: 15px;">BALANCE: <span style="float:right;">Rs. {v[11]}</span></div>
+            <div class="r-total-sec">
+                <div style="display: flex; justify-content: space-between;"><span>Total:</span> <span>Rs. {v[9]}</span></div>
+                <div style="display: flex; justify-content: space-between;"><span>Paid:</span> <span>Rs. {v[10]}</span></div>
+                <div style="display: flex; justify-content: space-between; font-size: 15px; background: #eee; padding: 2px;">
+                    <span>Balance:</span> <span>Rs. {v[11]}</span>
+                </div>
             </div>
             
-            <div style="text-align:center; margin-top:15px; font-size:11px; border-top: 1px solid #000; padding-top: 5px;">
+            <p style="text-align: center; font-size: 9px; margin-top: 20px;">
                 Developed by Zain - 03702906075<br>*** Software System ***
-            </div>
+            </p>
         </div>
         """
         
         st.markdown(receipt_html, unsafe_allow_html=True)
-        st.button("Print Slip (Ctrl+P)", help="Click and then press Ctrl+P on keyboard")
+        st.button("Print Slip (Ctrl+P)")
             
     except Exception as e:
         st.error(f"Slip display karne mein masla: {e}")
